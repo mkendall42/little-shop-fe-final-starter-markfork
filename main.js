@@ -54,8 +54,10 @@ function handleMerchantClicks(event) {
     deleteMerchant(event)
   } else if (event.target.classList.contains("edit-merchant")) {
     editMerchant(event)
-  } else if (event.target.classList.contains("view-merchant-coupons")) {
-    getMerchantCoupons(event)
+  } else if (event.target.classList.contains("view-merchant-coupons")) {  //This refers explicitly (and uniquely) to the "View Coupons" button for each merchant
+    // getMerchantCoupons(event)
+    // console.log("I'm here")
+    displayMerchantCoupons(event)   //Decided to more mirror merchant items sequencing for consistency
   } else if (event.target.classList.contains("view-merchant-items")) {
     displayMerchantItems(event)
   } else if (event.target.classList.contains("submit-merchant-edits")) {
@@ -143,7 +145,7 @@ function showMerchantsView() {
   addRemoveActiveNav(merchantsNavButton, itemsNavButton)
   addNewButton.dataset.state = 'merchant'
   show([merchantsView, addNewButton])
-  hide([itemsView])
+  hide([itemsView, couponsView])        //Will overlay coupons otherwise!
   displayMerchants(merchants)
 }
 
@@ -232,25 +234,99 @@ function displayMerchantItems(event) {
   showMerchantItemsView(merchantId, filteredMerchantItems)
 }
 
-function getMerchantCoupons(event) {
-  let merchantId = event.target.closest("article").id.split('-')[1]
+function getMerchantCoupons(merchantId, event) {
+
+  // debugger
+
+  // let merchantId = event.target.closest("article").id.split('-')[1]
   console.log("Merchant ID:", merchantId)
 
-  fetchData(`merchants/${merchantId}`)
+  fetchData(`merchants/${merchantId}/coupons`)      //Had to add "./coupons"...why wasn't it there before?  Just testing us?
   .then(couponData => {
     console.log("Coupon data from fetch:", couponData)
-    displayMerchantCoupons(couponData);
+    // displayMerchantCoupons(couponData);
+    showMerchantCouponsView(merchantId, couponData.data)
   })
+
+  // return couponData
 }
 
-function displayMerchantCoupons(coupons) {
+function displayMerchantCoupons(event) {
+
+  // debugger
+
+  let merchantId = event.target.closest("article").id.split('-')[1]
+  //Get array of coupons belonging to this merchant
+  //Use preexisting helper function
+  getMerchantCoupons(merchantId, event)
+  // showMerchantCouponsView(merchantId, getMerchantCoupons(merchantId, event))
+
+  // const filteredMerchantCoupons = filterByMerchant(merchantId)
+  // showMerchantItemsView(merchantId, filteredMerchantItems)
+}
+
+function displayIndividualCoupons(coupons, merchant) {
+  //Need to work on this function
+  //I might want to make a helper function for adding a single coupon 'box'
+
   show([couponsView])
   hide([merchantsView, itemsView])
 
-  couponsView.innerHTML = `
-    <p>Coupon data will go here.</p>
-  `
+  // couponsView.innerHTML = `
+  //   <p>Coupon data will go here.</p>
+  // `
+  // debugger
+
+  //This is very similar in structure to displaying items
+  couponsView.innerHTML = ""
+  coupons.forEach(coupon => {
+    //Format text better for active/inactive status
+    let statusText = ""
+    if (coupon.attributes.status === true) {
+      statusText = "Status: active"
+    } else {
+      statusText = "Status: inactive"
+    }
+
+    let discountText = `Discount: `
+    if (coupon.attributes.discount_value === null) {
+      discountText += `${coupon.attributes.discount_percentage}% off`
+    } else {
+      //Should always be set correctly so no need for else if
+      discountText += `$${coupon.attributes.discount_value} off`
+    }
+    
+    merchant = "SOME MERCHANT"
+    couponsView.innerHTML +=
+      `<article class="item" id="item-${coupon.id}">
+        <img src="" alt="">
+        <h2>Name: ${coupon.attributes.name}</h2>
+        <p>Code: ${coupon.attributes.code}</p>
+        <p>${statusText}</p>
+        <p>${discountText}</p>
+        <p class="merchant-name-in-item">Merchant: ${merchant}</p>
+      </article>`
+  })
 }
+
+//Likely will need a function like this...
+function showMerchantCouponsView(id, coupons) {
+
+  // debugger
+
+  //Now passing merchant, not just its id
+
+  //First, set up the HTML section / CSS / environment
+  show([couponsView])
+  hide([merchantsView, addNewButton, itemsView])
+  addRemoveActiveNav(itemsNavButton, merchantsNavButton)
+  addNewButton.dataset.state = "coupon"
+
+  //Then actually fetch the relevant data and inner HTML via displayMerchantCoupons()
+  showingText.innerText = `All coupons for Merchant #${id}`
+  displayIndividualCoupons(coupons)
+}
+
 
 //Helper Functions
 function show(elements) {
