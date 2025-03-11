@@ -234,18 +234,18 @@ function displayMerchantItems(event) {
   showMerchantItemsView(merchantId, filteredMerchantItems)
 }
 
-function getMerchantCoupons(merchantId, event) {
+function getMerchantCoupons(merchant, event) {
 
   // debugger
 
   // let merchantId = event.target.closest("article").id.split('-')[1]
-  console.log("Merchant ID:", merchantId)
+  console.log("Merchant ID:", merchant.id)
 
-  fetchData(`merchants/${merchantId}/coupons`)      //Had to add "./coupons"...why wasn't it there before?  Just testing us?
+  fetchData(`merchants/${merchant.id}/coupons`)      //Had to add "./coupons"...why wasn't it there before?  Just testing us?
   .then(couponData => {
     console.log("Coupon data from fetch:", couponData)
     // displayMerchantCoupons(couponData);
-    showMerchantCouponsView(merchantId, couponData.data)
+    showMerchantCouponsView(merchant, couponData.data)
   })
 
   // return couponData
@@ -255,27 +255,26 @@ function displayMerchantCoupons(event) {
 
   // debugger
 
+  //Find the actual merchant object
+
   let merchantId = event.target.closest("article").id.split('-')[1]
+  let merchant = findMerchant(merchantId)
+
   //Get array of coupons belonging to this merchant
   //Use preexisting helper function
-  getMerchantCoupons(merchantId, event)
+  getMerchantCoupons(merchant, event)
   // showMerchantCouponsView(merchantId, getMerchantCoupons(merchantId, event))
 
   // const filteredMerchantCoupons = filterByMerchant(merchantId)
   // showMerchantItemsView(merchantId, filteredMerchantItems)
 }
 
-function displayIndividualCoupons(coupons, merchant) {
+function displayIndividualCoupons(merchant, coupons) {
   //Need to work on this function
   //I might want to make a helper function for adding a single coupon 'box'
 
-  show([couponsView])
-  hide([merchantsView, itemsView])
-
-  // couponsView.innerHTML = `
-  //   <p>Coupon data will go here.</p>
-  // `
-  // debugger
+  // show([couponsView])
+  // hide([merchantsView, itemsView])
 
   //This is very similar in structure to displaying items
   couponsView.innerHTML = ""
@@ -296,7 +295,7 @@ function displayIndividualCoupons(coupons, merchant) {
       discountText += `$${coupon.attributes.discount_value} off`
     }
     
-    merchant = "SOME MERCHANT"
+    // merchant = "SOME MERCHANT"
     couponsView.innerHTML +=
       `<article class="item" id="item-${coupon.id}">
         <img src="" alt="">
@@ -304,13 +303,13 @@ function displayIndividualCoupons(coupons, merchant) {
         <p>Code: ${coupon.attributes.code}</p>
         <p>${statusText}</p>
         <p>${discountText}</p>
-        <p class="merchant-name-in-item">Merchant: ${merchant}</p>
+        <p class="merchant-name-in-item">Merchant: ${merchant.attributes.name}</p>
       </article>`
   })
 }
 
 //Likely will need a function like this...
-function showMerchantCouponsView(id, coupons) {
+function showMerchantCouponsView(merchant, coupons) {
 
   // debugger
 
@@ -319,12 +318,13 @@ function showMerchantCouponsView(id, coupons) {
   //First, set up the HTML section / CSS / environment
   show([couponsView])
   hide([merchantsView, addNewButton, itemsView])
-  addRemoveActiveNav(itemsNavButton, merchantsNavButton)
-  addNewButton.dataset.state = "coupon"
+  // addRemoveActiveNav(itemsNavButton, merchantsNavButton)
+  addRemoveActiveNav(merchantsNavButton, itemsNavButton)
+  addNewButton.dataset.state = "coupon"     //Do I need this here?  What does it really control?
 
   //Then actually fetch the relevant data and inner HTML via displayMerchantCoupons()
-  showingText.innerText = `All coupons for Merchant #${id}`
-  displayIndividualCoupons(coupons)
+  showingText.innerText = `All coupons for Merchant #${merchant.id} (${merchant.attributes.name})`
+  displayIndividualCoupons(merchant, coupons)
 }
 
 
