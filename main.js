@@ -8,6 +8,7 @@ const itemsView = document.querySelector("#items-view")
 const merchantsView = document.querySelector("#merchants-view")
 const merchantsNavButton = document.querySelector("#merchants-nav")
 const itemsNavButton = document.querySelector("#items-nav")
+const couponsNavButton = document.querySelector("#coupons-nav")
 const addNewButton = document.querySelector("#add-new-button")
 const showingText = document.querySelector("#showing-text")
 
@@ -142,7 +143,9 @@ function submitMerchant(event) {
 // Functions that control the view 
 function showMerchantsView() {
   showingText.innerText = "All Merchants"
-  addRemoveActiveNav(merchantsNavButton, itemsNavButton)
+  // addRemoveActiveNav(merchantsNavButton, itemsNavButton)
+  setActiveNav(merchantsNavButton, [couponsNavButton])
+
   addNewButton.dataset.state = 'merchant'
   show([merchantsView, addNewButton])
   hide([itemsView, couponsView])        //Will overlay coupons otherwise!
@@ -151,7 +154,9 @@ function showMerchantsView() {
 
 function showItemsView() {
   showingText.innerText = "All Items"
-  addRemoveActiveNav(itemsNavButton, merchantsNavButton)
+  // addRemoveActiveNav(itemsNavButton, merchantsNavButton)
+  setActiveNav(itemsNavButton, [couponsNavButton])
+
   addNewButton.dataset.state = 'item'
   show([itemsView])
   hide([merchantsView, merchantForm, addNewButton, couponsView])
@@ -162,7 +167,9 @@ function showMerchantItemsView(id, items) {
   showingText.innerText = `All Items for Merchant #${id}`
   show([itemsView])
   hide([merchantsView, addNewButton, couponsView])
-  addRemoveActiveNav(itemsNavButton, merchantsNavButton)
+  // addRemoveActiveNav(itemsNavButton, merchantsNavButton)
+  setActiveNav(itemsNavButton, [couponsNavButton])
+
   addNewButton.dataset.state = 'item'
   displayItems(items)
 }
@@ -299,7 +306,7 @@ function displayIndividualCoupons(merchant, coupons) {
     couponsView.innerHTML +=
       `<article class="item" id="item-${coupon.id}">
         <img src="" alt="">
-        <h2>Name: ${coupon.attributes.name}</h2>
+        <h2>${coupon.attributes.name}</h2>
         <p>Code: ${coupon.attributes.code}</p>
         <p>${statusText}</p>
         <p>${discountText}</p>
@@ -319,7 +326,15 @@ function showMerchantCouponsView(merchant, coupons) {
   show([couponsView])
   hide([merchantsView, addNewButton, itemsView])
   // addRemoveActiveNav(itemsNavButton, merchantsNavButton)
-  addRemoveActiveNav(merchantsNavButton, itemsNavButton)
+  
+  // addRemoveActiveNav(merchantsNavButton, itemsNavButton)
+  merchantsNavButton.classList.remove("active-nav")
+  itemsNavButton.classList.remove("active-nav")
+  couponsNavButton.classList.add("active-nav")
+  couponsNavButton.classList.remove("hidden")
+  // addRemoveActiveNav(couponsNavButton, [merchantsNavButton, itemsNavButton])
+  setActiveNav(couponsNavButton)
+
   addNewButton.dataset.state = "coupon"     //Do I need this here?  What does it really control?
 
   //Then actually fetch the relevant data and inner HTML via displayMerchantCoupons()
@@ -342,8 +357,34 @@ function hide(elements) {
 }
 
 function addRemoveActiveNav(nav1, nav2) {
+  //Modified to handle more than two-button case
+  // navToAdd
+
+  // let navsToRemove = [merchantsNavButton, itemsNavButton, couponsNavButton]
+
+  // navsToRemove.forEach((nav) => {
+  //   nav.classList.remove("active-nav")
+  // }
+  // navToAdd.classList.add("active-nav")
   nav1.classList.add('active-nav')
   nav2.classList.remove('active-nav')
+}
+
+function setActiveNav(activeNav, navsToHide = null) {
+  //Set default nav button list (could dynamically update for complex shop)
+  let navsToRemove = [merchantsNavButton, itemsNavButton, couponsNavButton]
+
+  navsToRemove.forEach((nav) => {
+    nav.classList.remove("active-nav")
+  })
+  if(navsToHide) {
+    navsToHide.forEach((nav) => {
+      nav.classList.add("hidden")
+    })
+  }
+
+  activeNav.classList.remove("hidden")      //If set to active, we definitely want to display it!
+  activeNav.classList.add("active-nav")
 }
 
 function filterByMerchant(merchantId) {
