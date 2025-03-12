@@ -57,7 +57,6 @@ function handleMerchantClicks(event) {
     editMerchant(event)
   } else if (event.target.classList.contains("view-merchant-coupons")) {  //This refers explicitly (and uniquely) to the "View Coupons" button for each merchant
     // getMerchantCoupons(event)
-    // console.log("I'm here")
     displayMerchantCoupons(event)   //Decided to more mirror merchant items sequencing for consistency
   } else if (event.target.classList.contains("view-merchant-items")) {
     displayMerchantItems(event)
@@ -143,18 +142,16 @@ function submitMerchant(event) {
 // Functions that control the view 
 function showMerchantsView() {
   showingText.innerText = "All Merchants"
-  // addRemoveActiveNav(merchantsNavButton, itemsNavButton)
   setActiveNav(merchantsNavButton, [couponsNavButton])
 
   addNewButton.dataset.state = 'merchant'
   show([merchantsView, addNewButton])
-  hide([itemsView, couponsView])        //Will overlay coupons otherwise!
+  hide([itemsView, couponsView])        //Will overlay coupons otherwise (not that I'd know from experience...)
   displayMerchants(merchants)
 }
 
 function showItemsView() {
   showingText.innerText = "All Items"
-  // addRemoveActiveNav(itemsNavButton, merchantsNavButton)
   setActiveNav(itemsNavButton, [couponsNavButton])
 
   addNewButton.dataset.state = 'item'
@@ -167,7 +164,6 @@ function showMerchantItemsView(id, items) {
   showingText.innerText = `All Items for Merchant #${id}`
   show([itemsView])
   hide([merchantsView, addNewButton, couponsView])
-  // addRemoveActiveNav(itemsNavButton, merchantsNavButton)
   setActiveNav(itemsNavButton, [couponsNavButton])
 
   addNewButton.dataset.state = 'item'
@@ -242,51 +238,29 @@ function displayMerchantItems(event) {
 }
 
 function getMerchantCoupons(merchant, event) {
-
-  // debugger
-
-  // let merchantId = event.target.closest("article").id.split('-')[1]
   console.log("Merchant ID:", merchant.id)
 
-  fetchData(`merchants/${merchant.id}/coupons`)      //Had to add "./coupons"...why wasn't it there before?  Just testing us?
+  fetchData(`merchants/${merchant.id}/coupons`)      //Had to add "./coupons"...was this a quick test / troll?
   .then(couponData => {
     console.log("Coupon data from fetch:", couponData)
-    // displayMerchantCoupons(couponData);
     showMerchantCouponsView(merchant, couponData.data)
   })
-
-  // return couponData
 }
 
 function displayMerchantCoupons(event) {
-
-  // debugger
-
-  //Find the actual merchant object
-
+  //Find the actual merchant object (not just id)
   let merchantId = event.target.closest("article").id.split('-')[1]
   let merchant = findMerchant(merchantId)
 
   //Get array of coupons belonging to this merchant
-  //Use preexisting helper function
   getMerchantCoupons(merchant, event)
-  // showMerchantCouponsView(merchantId, getMerchantCoupons(merchantId, event))
-
-  // const filteredMerchantCoupons = filterByMerchant(merchantId)
-  // showMerchantItemsView(merchantId, filteredMerchantItems)
 }
 
 function displayIndividualCoupons(merchant, coupons) {
-  //Need to work on this function
-  //I might want to make a helper function for adding a single coupon 'box'
-
-  // show([couponsView])
-  // hide([merchantsView, itemsView])
-
-  //This is very similar in structure to displaying items
+  //This is similar in structure / presentation to displaying items for consistency
   couponsView.innerHTML = ""
   coupons.forEach(coupon => {
-    //Format text better for active/inactive status
+    //Format text for active/inactive status (instead of true/false)
     let statusText = ""
     if (coupon.attributes.status === true) {
       statusText = "Status: active"
@@ -298,13 +272,11 @@ function displayIndividualCoupons(merchant, coupons) {
     if (coupon.attributes.discount_value === null) {
       discountText += `${coupon.attributes.discount_percentage}% off`
     } else {
-      //Should always be set correctly so no need for else if
       discountText += `$${coupon.attributes.discount_value} off`
     }
     
-    // merchant = "SOME MERCHANT"
     couponsView.innerHTML +=
-      `<article class="item" id="item-${coupon.id}">
+      `<article class="item" id="coupon-${coupon.id}">
         <img src="" alt="">
         <h2>${coupon.attributes.name}</h2>
         <p>Code: ${coupon.attributes.code}</p>
@@ -317,28 +289,14 @@ function displayIndividualCoupons(merchant, coupons) {
 
 //Likely will need a function like this...
 function showMerchantCouponsView(merchant, coupons) {
-
-  // debugger
-
-  //Now passing merchant, not just its id
-
   //First, set up the HTML section / CSS / environment
   show([couponsView])
   hide([merchantsView, addNewButton, itemsView])
-  // addRemoveActiveNav(itemsNavButton, merchantsNavButton)
-  
-  // addRemoveActiveNav(merchantsNavButton, itemsNavButton)
-  merchantsNavButton.classList.remove("active-nav")
-  itemsNavButton.classList.remove("active-nav")
-  couponsNavButton.classList.add("active-nav")
-  couponsNavButton.classList.remove("hidden")
-  // addRemoveActiveNav(couponsNavButton, [merchantsNavButton, itemsNavButton])
   setActiveNav(couponsNavButton)
-
-  addNewButton.dataset.state = "coupon"     //Do I need this here?  What does it really control?
+  addNewButton.dataset.state = "coupon"
 
   //Then actually fetch the relevant data and inner HTML via displayMerchantCoupons()
-  showingText.innerText = `All coupons for Merchant #${merchant.id} (${merchant.attributes.name})`
+  showingText.innerText = `All ${coupons.length} coupons for Merchant #${merchant.id} (${merchant.attributes.name})`
   displayIndividualCoupons(merchant, coupons)
 }
 
@@ -356,21 +314,8 @@ function hide(elements) {
   })
 }
 
-function addRemoveActiveNav(nav1, nav2) {
-  //Modified to handle more than two-button case
-  // navToAdd
-
-  // let navsToRemove = [merchantsNavButton, itemsNavButton, couponsNavButton]
-
-  // navsToRemove.forEach((nav) => {
-  //   nav.classList.remove("active-nav")
-  // }
-  // navToAdd.classList.add("active-nav")
-  nav1.classList.add('active-nav')
-  nav2.classList.remove('active-nav')
-}
-
 function setActiveNav(activeNav, navsToHide = null) {
+  //I decided to overhaul the old 'addRemoveActiveNav()'
   //Set default nav button list (could dynamically update for complex shop)
   let navsToRemove = [merchantsNavButton, itemsNavButton, couponsNavButton]
 
